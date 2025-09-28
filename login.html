@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    /* Fundo geral */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000; /* fundo preto */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    /* Container do login */
+    .login-container {
+      background: #5C2E9E; /* roxo */
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0px 6px 16px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      color: #fff; /* textos brancos */
+    }
+
+    /* Espaço da logo */
+    .login-logo img {
+      width: 150px;
+      margin-bottom: 1rem;
+    }
+
+    /* Título */
+    .login-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Inputs */
+    .login-container input {
+      width: 100%;
+      box-sizing: border-box; /* <-- garante alinhamento */
+      padding: 0.8rem;
+      margin: 0.6rem 0;
+      border: 1px solid #fff;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      background: #2e134f; /* roxo mais escuro */
+      color: #fff;
+      transition: 0.3s;
+      display: block; /* garante que ocupa linha toda */
+    }
+
+    .login-container input::placeholder {
+      color: #cfcfcf;
+    }
+
+    .login-container input:focus {
+      border-color: #fff;
+      box-shadow: 0px 0px 6px rgba(255,255,255,0.4);
+    }
+
+    /* Botão */
+    .login-button {
+      width: 100%; 
+      box-sizing: border-box; /* <-- agora botão alinha com inputs */
+      background-color: #fff;
+      color: #5C2E9E;
+      border: none;
+      padding: 0.9rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: 0.3s;
+      display: block;
+    }
+
+    .login-button:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* Link extra */
+    .login-extra {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .login-extra a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .login-extra a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <!-- Logo -->
+    <div class="login-logo">
+      <img src="images/logo3.png" alt="Logo da Empresa">
+    </div>
+
+    <!-- Título -->
+    <div class="login-title">Acesse sua conta</div>
+
+    <!-- Formulário -->
+    <form>
+      <input type="email" placeholder="E-mail" required>
+      <input type="password" placeholder="Senha" required>
+      <button type="submit" class="login-button">Entrar</button>
+    </form>
+
+    <!-- Links extras -->
+    <div class="login-extra">
+      <a href="#">Esqueci minha senha</a>
+    </div>
+  </div>
+
+</body>
+</html>

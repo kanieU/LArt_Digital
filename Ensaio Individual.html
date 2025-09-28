@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Galeria</title>
+
+        <style>
+    :root{
+      --bg:#f5f5f8;
+      --card-bg:#fff;
+      --accent: rgba(128,0,128,0.45);
+      --text:#1a1a1a;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+.voltar-wrapper {
+  text-align: left;   /* alinha o botão à esquerda */
+  margin-bottom: 20px; /* espaço abaixo do botão */
+}
+
+.btn-voltar {
+  background: #4e2a8c;   /* cor roxa do tema */
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.25s, transform 0.2s;
+}
+
+.btn-voltar:hover {
+  background: #371f67;
+  transform: translateY(-2px);
+}
+
+    
+    header{
+      padding:36px 20px;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:clamp(20px,3vw,28px);
+      letter-spacing:0.06em;
+    }
+    header p{margin:8px 0 0;color:#575; font-size:0.95rem}
+
+    .wrap{
+      max-width:1100px;
+      margin:28px auto;
+      padding:0 20px;
+    }
+
+    /* grid dos álbuns */
+    .albums {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap:24px;
+      align-items:start;
+    }
+
+    .album {
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      overflow:visible;
+      box-shadow: 0 8px 28px rgba(12,12,20,0.06);
+      padding:16px;
+    }
+
+    .cover {
+      position:relative;
+      width:100%;
+      height:210px;
+      border-radius:12px;
+      overflow:hidden;
+      cursor:pointer;
+      display:block;
+    }
+
+    .cover img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      transition:transform .45s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* overlay roxo */
+    .cover::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:var(--accent);
+      opacity:0;
+      transition:opacity .35s ease;
+      z-index:1;
+    }
+    .cover:hover::before{ opacity:1; }
+
+    /* texto no canto inferior esquerdo */
+    .cover .cover-text{
+      position:absolute;
+      left:16px;
+      bottom:16px;
+      z-index:2;
+      color:#fff;
+      text-align:left;
+      transform:translateY(10px);
+      opacity:0;
+      transition: all .32s ease;
+      max-width:75%;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    }
+    .cover:hover .cover-text{
+      transform:translateY(0);
+      opacity:1;
+    }
+    .cover .cover-text h3{
+      margin:0 0 6px;
+      font-size:1.05rem;
+    }
+    .cover .cover-text p{ margin:0;font-size:0.85rem;opacity:0.95 }
+
+    .album .meta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:12px;
+      gap:12px;
+    }
+    .album .meta .info{ font-size:0.92rem; color:#444 }
+    .album .meta button{
+      background:#4e2a8c;
+      color:#fff;
+      border:0;
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .album .meta button:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(78,42,140,0.18) }
+
+    /* thumbnails preview (small) */
+    .thumbs {
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+    .thumbs .t{
+      width:calc((100% - 16px)/3);
+      height:60px;
+      border-radius:8px;
+      overflow:hidden;
+      flex:1 1 0;
+      box-shadow: 0 6px 18px rgba(10,10,20,0.04);
+    }
+    .thumbs .t img{ width:100%; height:100%; object-fit:cover }
+
+    /* Modal / lightbox */
+    .modal {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(8,6,10,0.6);
+      z-index:9999;
+      padding:36px;
+    }
+    .modal.open{ display:flex }
+
+    .slider {
+      width:100%;
+      max-width:980px;
+      background:#0f0f10;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 30px 80px rgba(3,3,6,0.6);
+    }
+
+    .slider-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px 16px;
+      background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.06));
+      color:#fff;
+    }
+    .slider-top .title{ font-weight:700; font-size:1.05rem }
+    .close-btn{
+      background:transparent;
+      border:0;
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+      padding:6px 10px;
+      border-radius:8px;
+    }
+    .close-btn:hover{ background: rgba(255,255,255,0.06) }
+
+    .slides-viewport{
+      position:relative;
+      width:100%;
+      height:540px;
+      overflow:hidden;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .slides {
+      display:flex;
+      height:100%;
+      transition: transform .6s cubic-bezier(.2,.9,.3,1);
+      will-change:transform;
+    }
+
+    .slide {
+      min-width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .slide img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      transform-origin:center;
+      transition: transform .6s ease;
+    }
+
+    /* controls */
+    .nav {
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      z-index:5;
+      display:flex;
+      gap:12px;
+      width:100%;
+      justify-content:space-between;
+      pointer-events:none;
+      padding:0 18px;
+    }
+    .nav button{
+      pointer-events:all;
+      background: rgba(0,0,0,0.35);
+      border:0;
+      color:#fff;
+      width:46px;
+      height:46px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:20px;
+    }
+    .nav button:hover{ background: rgba(255,255,255,0.06) }
+
+    /* dots */
+    .dots{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      padding:12px 0;
+      background:linear-gradient(180deg, rgba(0,0,0,0.03), transparent);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;
+    }
+    .dot.active{ background:#fff }
+
+    /* responsive */
+    @media (max-width:860px){
+      .slides-viewport{ height:420px }
+      .album .meta{flex-direction:column; align-items:stretch; gap:8px}
+      .album .meta button{ align-self:flex-end }
+    }
+    @media (max-width:520px){
+      .slides-viewport{ height:300px }
+      .thumbs .t{ height:48px }
+    }
+
+.custom-dropdown {
+  position: relative; /* base para a seta */
+  padding-right: 25px; /* espaço extra para não encostar na seta */
+}
+
+.custom-dropdown::after {
+  position: absolute;
+  right: 5px;   /* fixa no canto direito */
+  top: 50%;     /* centraliza verticalmente */
+  transform: translateY(-50%);
+}
+
+.main-text {
+  display: block;
+  font-weight: bold;
+}
+
+.submenu-text {
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  color: #ddd;
+  margin-top: 2px;
+}
+
+/* --- esconder seta padrão do bootstrap --- */
+.custom-dropdown::after {
+  display: none !important;
+}
+
+/* --- layout em grid: texto (col 1) | seta (col 2) --- */
+.custom-dropdown {
+  display: inline-grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto; /* 1ª linha = título, 2ª = subtítulo */
+  column-gap: 8px;
+  align-items: start;
+  padding-right: 0; /* bootstrap adiciona padding, ajustamos via grid */
+}
+
+/* título (primeira linha) */
+.custom-dropdown .main-text {
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  line-height: 1; /* mantém a primeira linha compacta */
+  font-weight: 700;
+}
+
+/* subtítulo (segunda linha) */
+.custom-dropdown .submenu-text {
+  grid-column: 1;
+  grid-row: 2;
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1;
+  margin-top: 3px;
+  color: #ddd; /* ajuste de cor conforme seu tema */
+}
+
+/* nossa seta custom — fica na coluna 2, alinhada ao centro da 1ª linha */
+.custom-caret {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;    /* centraliza verticalmente com a 1ª linha */
+  justify-self: end;
+  font-size: 0.95rem;
+  color: inherit;
+  transition: transform .18s ease;
+  margin-left: 6px;
+}
+
+/* gira a seta quando o dropdown estiver aberto */
+.custom-dropdown[aria-expanded="true"] .custom-caret {
+  transform: rotate(180deg);
+}
+
+  </style>
+
+
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="images/logo1.png" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+
+
+
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="index.html">
+  <img src="images/logo3.png" height="40">
+</a>
+                <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#about">Seviços</a></li>
+                        
+                       <li class="nav-item dropdown mx-0 mx-lg-1">
+  <a class="nav-link dropdown-toggle custom-dropdown py-3 px-0 px-lg-3 rounded"
+     href="#portfolio" id="acessoDropdown" role="button"
+     data-bs-toggle="dropdown" aria-expanded="false">
+
+    <span class="main-text">Fotografia</span>
+    <span class="submenu-text">Ensaio Individual</span>
+
+    <!-- seta custom (usa Font Awesome já incluído no seu arquivo) -->
+    <i class="fas fa-chevron-down custom-caret" aria-hidden="true"></i>
+  </a>
+
+   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="acessoDropdown">
+   <li><a class="dropdown-item" href="mesversario.html">Mêsversário Acompanhamento Infantil</a></li>
+    <li><a class="dropdown-item" href="festainfantil.html">Festa Infantil</a></li>
+    <li><a class="dropdown-item" href="Ensaio de família.html">Ensaio de família</a></li>
+    <li><a class="dropdown-item" href="Ensaio Individual.html">Ensaio Individual</a></li>
+    <li><a class="dropdown-item" href="Ensaio Corporativo.html">Ensaio Corporativo</a></li>
+    <li><a class="dropdown-item" href="Fotografia E-Commerce.html">Fotografia E-Commerce</a></li>
+  </ul>
+</li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="#contact">Contato</a></li>
+                       
+                        <!-- Dropdown -->
+        <li class="nav-item dropdown mx-0 mx-lg-1">
+            <a class="nav-link dropdown-toggle py-3 px-0 px-lg-3 rounded" href="#" id="acessoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Acesso
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="acessoDropdown">
+                <li><a class="dropdown-item" href="login.html">Login</a></li>
+            </ul>
+        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Masthead-->
+      
+       
+
+
+            <!-- About Section-->
+        <section class="page-section bg-primary text-white mb-0" id="portfolio" style="padding-top: 200px;">
+    <div class="container">
+                <!-- About Section Heading-->
+               
+<!-- Botão Voltar -->
+<div class="voltar-wrapper">
+  <a href="index.html" class="btn-voltar">
+    <i class="fas fa-arrow-left"></i> Voltar
+  </a>
+</div>
+
+
+                <h2 class="page-section-heading text-center text-uppercase text-white">Galeria</h2>
+               
+             
+                <!-- About Section Content-->
+                 <main class="wrap">
+    <section class="albums" id="albums">
+      <!-- Album cards (serão preenchidos pelo HTML abaixo) -->
+      <article class="album" data-album="0">
+        <a class="cover" href="#" data-open="0" aria-label="Abrir álbum 1">
+          <img src="images/ensaio indv/1.avif" alt="Capa Álbum 1">
+          <div class="cover-text">
+            <h3>Book Individual</h3>
+            <p>Regina S.</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="images/ensaio indv/1.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/2.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/3.avif" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">3 fotos · 2025</div>
+          <button data-open="0">Ver álbum</button>
+        </div>
+      </article>
+
+      <article class="album" data-album="1">
+        <a class="cover" href="#" data-open="1" aria-label="Abrir álbum 2">
+          <img src="images/ensaio indv/m1.avif" alt="Capa Álbum 2">
+          <div class="cover-text">
+            <h3>Book Individual</h3>
+            <p>May</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="images/ensaio indv/m1.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/m2.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/m3.avif" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">4 fotos · 2023</div>
+          <button data-open="1">Ver álbum</button>
+        </div>
+      </article>
+
+      <article class="album" data-album="2">
+        <a class="cover" href="#" data-open="2" aria-label="Abrir álbum 3">
+          <img src="images/ensaio indv/p3.avif" alt="Capa Álbum 3">
+          <div class="cover-text">
+            <h3>Book Individual</h3>
+            <p>Paty</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="images/ensaio indv/p1.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/p2.avif" alt=""></div>
+          <div class="t"><img src="images/ensaio indv/p3.avif" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">4 fotos · 2022</div>
+          <button data-open="2">Ver álbum</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- modal / slideshow -->
+  <div class="modal" id="modal" role="dialog" aria-hidden="true" aria-label="Galeria">
+    <div class="slider" role="document">
+      <div class="slider-top">
+        <div class="title" id="modalTitle">Álbum</div>
+        <div>
+          <button class="close-btn" id="closeBtn" aria-label="Fechar">✕</button>
+        </div>
+      </div>
+
+      <div class="slides-viewport">
+        <div class="slides" id="slides">
+          <!-- slides serão inseridos via JS -->
+        </div>
+
+        <div class="nav" aria-hidden="false">
+          <button id="prev" aria-label="Anterior">◀</button>
+          <button id="next" aria-label="Próximo">▶</button>
+        </div>
+      </div>
+
+      <div class="dots" id="dots" aria-hidden="false">
+        <!-- dots via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // conteúdo de cada álbum (array de URLs)
+    const albums = [
+      // Álbum 1
+      [
+        "images/ensaio indv/1.avif",
+        "images/ensaio indv/2.avif",
+        "images/ensaio indv/3.avif",
+                       
+      ],
+      // Álbum 2
+      [
+        "images/ensaio indv/m1.avif",
+        "images/ensaio indv/m2.avif",
+        "images/ensaio indv/m3.avif",
+        "images/ensaio indv/m4.avif",
+      ],
+      // Álbum 3
+      [
+        "images/ensaio indv/p1.avif",
+        "images/ensaio indv/p2.avif",
+        "images/ensaio indv/p3.avif",
+        "images/ensaio indv/p4.avif",      
+       
+      ]
+    ];
+
+    // referências DOM
+    const modal = document.getElementById("modal");
+    const slidesWrap = document.getElementById("slides");
+    const dotsWrap = document.getElementById("dots");
+    const modalTitle = document.getElementById("modalTitle");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const closeBtn = document.getElementById("closeBtn");
+
+    let currentAlbum = 0;
+    let currentIndex = 0;
+    let autoplayTimer = null;
+
+    // abre modal e monta slides
+    function openAlbum(albumIdx){
+      currentAlbum = albumIdx;
+      const imgs = albums[albumIdx];
+      slidesWrap.innerHTML = "";
+      dotsWrap.innerHTML = "";
+      modalTitle.textContent = document.querySelector(`.album[data-album="${albumIdx}"] .cover-text h3`).textContent;
+
+      imgs.forEach((src, i) => {
+        const s = document.createElement("div");
+        s.className = "slide";
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = modalTitle.textContent + " foto " + (i+1);
+        s.appendChild(img);
+        slidesWrap.appendChild(s);
+
+        // dot
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.dataset.index = i;
+        dot.addEventListener("click", ()=> goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+
+      currentIndex = 0;
+      update();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      // start autoplay
+      startAutoplay();
+      // trap focus (simple)
+      closeBtn.focus();
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeAlbum(){
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+      stopAutoplay();
+      document.body.style.overflow = "";
+    }
+
+    function update(){
+      const n = slidesWrap.children.length;
+      slidesWrap.style.transform = `translateX(-${currentIndex * 100}%)`;
+      // dots
+      Array.from(dotsWrap.children).forEach((d,i)=> d.classList.toggle("active", i === currentIndex));
+    }
+
+    function goTo(i){
+      const n = slidesWrap.children.length;
+      currentIndex = ((i % n) + n) % n;
+      update();
+      resetAutoplay();
+    }
+
+    function next(){
+      goTo(currentIndex + 1);
+    }
+    function prev(){
+      goTo(currentIndex - 1);
+    }
+
+    // autoplay
+    function startAutoplay(){
+      stopAutoplay();
+      autoplayTimer = setInterval(()=> {
+        next();
+      }, 3000);
+    }
+    function stopAutoplay(){ if(autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null } }
+    function resetAutoplay(){ startAutoplay(); }
+
+    // eventos de botões abrir
+    document.querySelectorAll("[data-open]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.preventDefault();
+        const a = Number(btn.dataset.open);
+        openAlbum(a);
+      });
+    });
+
+    // controles
+    nextBtn.addEventListener("click", ()=> { next(); });
+    prevBtn.addEventListener("click", ()=> { prev(); });
+    closeBtn.addEventListener("click", ()=> { closeAlbum(); });
+
+    // fechar ao clicar fora do slider
+    modal.addEventListener("click",(e)=>{
+      if(e.target === modal) closeAlbum();
+    });
+
+    // teclado
+    window.addEventListener("keydown",(e)=>{
+      if(modal.classList.contains("open")){
+        if(e.key === "ArrowRight") next();
+        if(e.key === "ArrowLeft") prev();
+        if(e.key === "Escape") closeAlbum();
+      }
+    });
+
+    // previne clique acidental nas imagens para arrastar
+    slidesWrap.addEventListener("mousedown", (e)=> e.preventDefault());
+
+    // acessibilidade: se a página for reduzida, dê foco no modal
+    // (já estamos focando o botão fechar ao abrir)
+  </script>
+                <!-- About Section Button-->
+                
+            </div>
+        </section>
+
+  
+        
+        <!-- Footer-->
+        <footer class="footer text-center">
+            <div class="container">
+                <div class="row">
+                    <!-- Footer Location-->
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <h4 class="text-uppercase mb-4">Location</h4>
+                        <p class="lead mb-0">
+                            2215 John Daniel Drive
+                            <br />
+                            Clark, MO 65243
+                        </p>
+                    </div>
+                    <!-- Footer Social Icons-->
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        <h4 class="text-uppercase mb-4">Around the Web</h4>
+                        <a class="btn btn-outline-light btn-social mx-1" href="#!"><i class="fab fa-fw fa-facebook-f"></i></a>
+                        <a class="btn btn-outline-light btn-social mx-1" href="#!"><i class="fab fa-fw fa-twitter"></i></a>
+                        <a class="btn btn-outline-light btn-social mx-1" href="#!"><i class="fab fa-fw fa-linkedin-in"></i></a>
+                        <a class="btn btn-outline-light btn-social mx-1" href="#!"><i class="fab fa-fw fa-dribbble"></i></a>
+                    </div>
+                    <!-- Footer About Text-->
+                    <div class="col-lg-4">
+                        <h4 class="text-uppercase mb-4">About Freelancer</h4>
+                        <p class="lead mb-0">
+                            Freelance is a free to use, MIT licensed Bootstrap theme created by
+                            <a href="http://startbootstrap.com">Start Bootstrap</a>
+                            .
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Copyright Section-->
+        <div class="copyright py-4 text-center text-white">
+            <div class="container"><small>Copyright &copy; Your Website 2023</small></div>
+        </div>
+        <!-- Portfolio Modals-->
+        <!-- Portfolio Modal 1-->
+        <div class="portfolio-modal modal fade" id="portfolioModal1" tabindex="-1" aria-labelledby="portfolioModal1" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Festa Infantil</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="images/FestaInfantil.avif" alt="..." />
+                                    <img class="img-fluid rounded mb-5" src="images/festainfantil/1.avif" alt="..." />
+                                     <img class="img-fluid rounded mb-5" src="images/festainfantil/2.avif" alt="..." />
+                                     <img class="img-fluid rounded mb-5" src="images/festainfantil/3.avif" alt="..." />
+                                     <img class="img-fluid rounded mb-5" src="images/festainfantil/4.avif" alt="..." />
+                                     <img class="img-fluid rounded mb-5" src="images/festainfantil/5.avif" alt="..." />
+                                     <img class="img-fluid rounded mb-5" src="images/festainfantil/6.avif" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4">E eu ouvi o "parabéns para você" - Registrando aniversários com muito amor.</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Modal 2-->
+        <div class="portfolio-modal modal fade" id="portfolioModal2" tabindex="-1" aria-labelledby="portfolioModal2" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Book Infantil | Mesversário</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="assets/img/portfolio/cake.png" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4">Acompanhamento do crescimento do bebê.</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Modal 3-->
+        <div class="portfolio-modal modal fade" id="portfolioModal3" tabindex="-1" aria-labelledby="portfolioModal3" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Ensaio Individual</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="assets/img/portfolio/circus.png" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4">Ensaio personalizado com seu estilo!</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Modal 4-->
+        <div class="portfolio-modal modal fade" id="portfolioModal4" tabindex="-1" aria-labelledby="portfolioModal4" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Ensaio Corporativo</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="assets/img/portfolio/game.png" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4">Ensaio para exaltar sua profissão e te fazer passar autoridade.</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Modal 5-->
+        <div class="portfolio-modal modal fade" id="portfolioModal5" tabindex="-1" aria-labelledby="portfolioModal5" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Ensaio de família</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="assets/img/portfolio/safe.png" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4">Eternizando um momento de família através das fotos.</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Modal 6-->
+        <div class="portfolio-modal modal fade" id="portfolioModal6" tabindex="-1" aria-labelledby="portfolioModal6" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0"><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                    <div class="modal-body text-center pb-5">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <!-- Portfolio Modal - Title-->
+                                    <h2 class="portfolio-modal-title text-secondary text-uppercase mb-0">Fotografia E-Commerce</h2>
+                                    <!-- Icon Divider-->
+                                    <div class="divider-custom">
+                                        <div class="divider-custom-line"></div>
+                                        <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                                        <div class="divider-custom-line"></div>
+                                    </div>
+                                    <!-- Portfolio Modal - Image-->
+                                    <img class="img-fluid rounded mb-5" src="assets/img/portfolio/submarine.png" alt="..." />
+                                    <!-- Portfolio Modal - Text-->
+                                    <p class="mb-4"> Fotografia de produto</p>
+                                    <button class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-xmark fa-fw"></i>
+                                        Fechar Janela
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>

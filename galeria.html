@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Galeria — 3 Álbuns</title>
+  <style>
+    :root{
+      --bg:#f5f5f8;
+      --card-bg:#fff;
+      --accent: rgba(128,0,128,0.45);
+      --text:#1a1a1a;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    header{
+      padding:36px 20px;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:clamp(20px,3vw,28px);
+      letter-spacing:0.06em;
+    }
+    header p{margin:8px 0 0;color:#575; font-size:0.95rem}
+
+    .wrap{
+      max-width:1100px;
+      margin:28px auto;
+      padding:0 20px;
+    }
+
+    /* grid dos álbuns */
+    .albums {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap:24px;
+      align-items:start;
+    }
+
+    .album {
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      overflow:visible;
+      box-shadow: 0 8px 28px rgba(12,12,20,0.06);
+      padding:16px;
+    }
+
+    .cover {
+      position:relative;
+      width:100%;
+      height:210px;
+      border-radius:12px;
+      overflow:hidden;
+      cursor:pointer;
+      display:block;
+    }
+
+    .cover img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      transition:transform .45s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* overlay roxo */
+    .cover::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:var(--accent);
+      opacity:0;
+      transition:opacity .35s ease;
+      z-index:1;
+    }
+    .cover:hover::before{ opacity:1; }
+
+    /* texto no canto inferior esquerdo */
+    .cover .cover-text{
+      position:absolute;
+      left:16px;
+      bottom:16px;
+      z-index:2;
+      color:#fff;
+      text-align:left;
+      transform:translateY(10px);
+      opacity:0;
+      transition: all .32s ease;
+      max-width:75%;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    }
+    .cover:hover .cover-text{
+      transform:translateY(0);
+      opacity:1;
+    }
+    .cover .cover-text h3{
+      margin:0 0 6px;
+      font-size:1.05rem;
+    }
+    .cover .cover-text p{ margin:0;font-size:0.85rem;opacity:0.95 }
+
+    .album .meta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:12px;
+      gap:12px;
+    }
+    .album .meta .info{ font-size:0.92rem; color:#444 }
+    .album .meta button{
+      background:#4e2a8c;
+      color:#fff;
+      border:0;
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .album .meta button:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(78,42,140,0.18) }
+
+    /* thumbnails preview (small) */
+    .thumbs {
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+    .thumbs .t{
+      width:calc((100% - 16px)/3);
+      height:60px;
+      border-radius:8px;
+      overflow:hidden;
+      flex:1 1 0;
+      box-shadow: 0 6px 18px rgba(10,10,20,0.04);
+    }
+    .thumbs .t img{ width:100%; height:100%; object-fit:cover }
+
+    /* Modal / lightbox */
+    .modal {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(8,6,10,0.6);
+      z-index:9999;
+      padding:36px;
+    }
+    .modal.open{ display:flex }
+
+    .slider {
+      width:100%;
+      max-width:980px;
+      background:#0f0f10;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 30px 80px rgba(3,3,6,0.6);
+    }
+
+    .slider-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px 16px;
+      background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.06));
+      color:#fff;
+    }
+    .slider-top .title{ font-weight:700; font-size:1.05rem }
+    .close-btn{
+      background:transparent;
+      border:0;
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+      padding:6px 10px;
+      border-radius:8px;
+    }
+    .close-btn:hover{ background: rgba(255,255,255,0.06) }
+
+    .slides-viewport{
+      position:relative;
+      width:100%;
+      height:540px;
+      overflow:hidden;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .slides {
+      display:flex;
+      height:100%;
+      transition: transform .6s cubic-bezier(.2,.9,.3,1);
+      will-change:transform;
+    }
+
+    .slide {
+      min-width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .slide img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      transform-origin:center;
+      transition: transform .6s ease;
+    }
+
+    /* controls */
+    .nav {
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      z-index:5;
+      display:flex;
+      gap:12px;
+      width:100%;
+      justify-content:space-between;
+      pointer-events:none;
+      padding:0 18px;
+    }
+    .nav button{
+      pointer-events:all;
+      background: rgba(0,0,0,0.35);
+      border:0;
+      color:#fff;
+      width:46px;
+      height:46px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:20px;
+    }
+    .nav button:hover{ background: rgba(255,255,255,0.06) }
+
+    /* dots */
+    .dots{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      padding:12px 0;
+      background:linear-gradient(180deg, rgba(0,0,0,0.03), transparent);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.25);cursor:pointer;
+    }
+    .dot.active{ background:#fff }
+
+    /* responsive */
+    @media (max-width:860px){
+      .slides-viewport{ height:420px }
+      .album .meta{flex-direction:column; align-items:stretch; gap:8px}
+      .album .meta button{ align-self:flex-end }
+    }
+    @media (max-width:520px){
+      .slides-viewport{ height:300px }
+      .thumbs .t{ height:48px }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>L'Art — Álbuns</h1>
+    <p>3 álbuns de exemplo — passe o mouse para ver overlay e clique em "Ver álbum".</p>
+  </header>
+
+  <main class="wrap">
+    <section class="albums" id="albums">
+      <!-- Album cards (serão preenchidos pelo HTML abaixo) -->
+      <article class="album" data-album="0">
+        <a class="cover" href="#" data-open="0" aria-label="Abrir álbum 1">
+          <img src="https://picsum.photos/id/1015/1200/800" alt="Capa Álbum 1">
+          <div class="cover-text">
+            <h3>Viagens & Paisagens</h3>
+            <p>Momentos de natureza e trilhas.</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="https://picsum.photos/id/1015/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1018/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1016/400/280" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">12 fotos · 2024</div>
+          <button data-open="0">Ver álbum</button>
+        </div>
+      </article>
+
+      <article class="album" data-album="1">
+        <a class="cover" href="#" data-open="1" aria-label="Abrir álbum 2">
+          <img src="https://picsum.photos/id/1025/1200/800" alt="Capa Álbum 2">
+          <div class="cover-text">
+            <h3>Retratos & Pessoas</h3>
+            <p>Ensaio com emoção e estilo.</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="https://picsum.photos/id/1025/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1027/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1012/400/280" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">9 fotos · 2023</div>
+          <button data-open="1">Ver álbum</button>
+        </div>
+      </article>
+
+      <article class="album" data-album="2">
+        <a class="cover" href="#" data-open="2" aria-label="Abrir álbum 3">
+          <img src="https://picsum.photos/id/1035/1200/800" alt="Capa Álbum 3">
+          <div class="cover-text">
+            <h3>Detalhes & Macro</h3>
+            <p>Texturas e padrões de perto.</p>
+          </div>
+        </a>
+
+        <div class="thumbs" aria-hidden="true">
+          <div class="t"><img src="https://picsum.photos/id/1035/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1036/400/280" alt=""></div>
+          <div class="t"><img src="https://picsum.photos/id/1037/400/280" alt=""></div>
+        </div>
+
+        <div class="meta">
+          <div class="info">15 fotos · 2022</div>
+          <button data-open="2">Ver álbum</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- modal / slideshow -->
+  <div class="modal" id="modal" role="dialog" aria-hidden="true" aria-label="Galeria">
+    <div class="slider" role="document">
+      <div class="slider-top">
+        <div class="title" id="modalTitle">Álbum</div>
+        <div>
+          <button class="close-btn" id="closeBtn" aria-label="Fechar">✕</button>
+        </div>
+      </div>
+
+      <div class="slides-viewport">
+        <div class="slides" id="slides">
+          <!-- slides serão inseridos via JS -->
+        </div>
+
+        <div class="nav" aria-hidden="false">
+          <button id="prev" aria-label="Anterior">◀</button>
+          <button id="next" aria-label="Próximo">▶</button>
+        </div>
+      </div>
+
+      <div class="dots" id="dots" aria-hidden="false">
+        <!-- dots via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // conteúdo de cada álbum (array de URLs)
+    const albums = [
+      // Álbum 0 — Viagens
+      [
+        "https://picsum.photos/id/1015/1600/1000",
+        "https://picsum.photos/id/1018/1600/1000",
+        "https://picsum.photos/id/1016/1600/1000",
+        "https://picsum.photos/id/1011/1600/1000",
+        "https://picsum.photos/id/1003/1600/1000",
+        "https://picsum.photos/id/1020/1600/1000"
+      ],
+      // Álbum 1 — Retratos
+      [
+        "https://picsum.photos/id/1025/1600/1000",
+        "https://picsum.photos/id/1027/1600/1000",
+        "https://picsum.photos/id/1012/1600/1000",
+        "https://picsum.photos/id/1005/1600/1000",
+        "https://picsum.photos/id/1001/1600/1000"
+      ],
+      // Álbum 2 — Macro
+      [
+        "https://picsum.photos/id/1035/1600/1000",
+        "https://picsum.photos/id/1036/1600/1000",
+        "https://picsum.photos/id/1037/1600/1000",
+        "https://picsum.photos/id/1038/1600/1000",
+        "https://picsum.photos/id/1039/1600/1000",
+        "https://picsum.photos/id/1040/1600/1000",
+      ]
+    ];
+
+    // referências DOM
+    const modal = document.getElementById("modal");
+    const slidesWrap = document.getElementById("slides");
+    const dotsWrap = document.getElementById("dots");
+    const modalTitle = document.getElementById("modalTitle");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const closeBtn = document.getElementById("closeBtn");
+
+    let currentAlbum = 0;
+    let currentIndex = 0;
+    let autoplayTimer = null;
+
+    // abre modal e monta slides
+    function openAlbum(albumIdx){
+      currentAlbum = albumIdx;
+      const imgs = albums[albumIdx];
+      slidesWrap.innerHTML = "";
+      dotsWrap.innerHTML = "";
+      modalTitle.textContent = document.querySelector(`.album[data-album="${albumIdx}"] .cover-text h3`).textContent;
+
+      imgs.forEach((src, i) => {
+        const s = document.createElement("div");
+        s.className = "slide";
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = modalTitle.textContent + " foto " + (i+1);
+        s.appendChild(img);
+        slidesWrap.appendChild(s);
+
+        // dot
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.dataset.index = i;
+        dot.addEventListener("click", ()=> goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+
+      currentIndex = 0;
+      update();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      // start autoplay
+      startAutoplay();
+      // trap focus (simple)
+      closeBtn.focus();
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeAlbum(){
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+      stopAutoplay();
+      document.body.style.overflow = "";
+    }
+
+    function update(){
+      const n = slidesWrap.children.length;
+      slidesWrap.style.transform = `translateX(-${currentIndex * 100}%)`;
+      // dots
+      Array.from(dotsWrap.children).forEach((d,i)=> d.classList.toggle("active", i === currentIndex));
+    }
+
+    function goTo(i){
+      const n = slidesWrap.children.length;
+      currentIndex = ((i % n) + n) % n;
+      update();
+      resetAutoplay();
+    }
+
+    function next(){
+      goTo(currentIndex + 1);
+    }
+    function prev(){
+      goTo(currentIndex - 1);
+    }
+
+    // autoplay
+    function startAutoplay(){
+      stopAutoplay();
+      autoplayTimer = setInterval(()=> {
+        next();
+      }, 3000);
+    }
+    function stopAutoplay(){ if(autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null } }
+    function resetAutoplay(){ startAutoplay(); }
+
+    // eventos de botões abrir
+    document.querySelectorAll("[data-open]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.preventDefault();
+        const a = Number(btn.dataset.open);
+        openAlbum(a);
+      });
+    });
+
+    // controles
+    nextBtn.addEventListener("click", ()=> { next(); });
+    prevBtn.addEventListener("click", ()=> { prev(); });
+    closeBtn.addEventListener("click", ()=> { closeAlbum(); });
+
+    // fechar ao clicar fora do slider
+    modal.addEventListener("click",(e)=>{
+      if(e.target === modal) closeAlbum();
+    });
+
+    // teclado
+    window.addEventListener("keydown",(e)=>{
+      if(modal.classList.contains("open")){
+        if(e.key === "ArrowRight") next();
+        if(e.key === "ArrowLeft") prev();
+        if(e.key === "Escape") closeAlbum();
+      }
+    });
+
+    // previne clique acidental nas imagens para arrastar
+    slidesWrap.addEventListener("mousedown", (e)=> e.preventDefault());
+
+    // acessibilidade: se a página for reduzida, dê foco no modal
+    // (já estamos focando o botão fechar ao abrir)
+  </script>
+</body>
+</html>
